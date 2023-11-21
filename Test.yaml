@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-deployment
+spec:
+  replicas: 4  # Число реплик для поддержки пиковой нагрузки
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-app
+        image: my-app-image:latest
+        resources:
+          requests:
+            memory: "128Mi"  # Требуемое количество памяти для каждого пода
+            cpu: "1"  # Требуемая CPU для первых запросов
+          limits:
+            memory: "128Mi"  # Максимальное количество памяти для каждого пода
+            cpu: "0.1"  # Максимальная CPU для всех последующих запросов
+        readinessProbe:
+          httpGet:
+            path: /health  # Путь для проверки готовности приложения
+            port: 8080  # Порт, на котором работает приложение
+          initialDelaySeconds: 10  # Задержка перед первой проверкой
+          periodSeconds: 5  # Интервал проверок
+        livenessProbe:
+          httpGet:
+            path: /health  # Путь для проверки активности приложения
+            port: 8080  # Порт, на котором работает приложение
+          initialDelaySeconds: 10  # Задержка перед первой проверкой
+          periodSeconds: 5  # Интервал проверок
+        env:
+          - name: ENVIRONMENT
+            value: production  # Пример переменной окружения
